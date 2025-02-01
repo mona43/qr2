@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>إنشاء QR Code مخفي الرابط</title>
-  <!-- مكتبة QRCodeJS -->
+  <title>صفحة الرابط الوهمي</title>
+  <!-- تضمين مكتبة QRCodeJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     body {
@@ -31,10 +31,13 @@
       display: flex;
       justify-content: center;
     }
+    #generator {
+      margin-bottom: 30px;
+    }
   </style>
 </head>
 <body>
-  <!-- قسم مولد الـ QR Code -->
+  <!-- قسم إنشاء QR Code -->
   <div id="generator">
     <input type="text" id="originalLink" placeholder="أدخل الرابط الحقيقي">
     <input type="text" id="displayText" placeholder="أدخل النص الوهمي">
@@ -43,11 +46,11 @@
 
   <!-- مكان عرض QR Code -->
   <div id="qrcode"></div>
-  <!-- عرض النص الوهمي بعد فتح الرابط -->
+  <!-- العنصر الذي سيعرض النص الوهمي -->
   <a id="output"></a>
 
   <script>
-    // دالة إنشاء QR Code
+    // دالة إنشاء QR Code باستخدام معلمات URL
     function generateQRCode() {
       const originalLink = document.getElementById("originalLink").value.trim();
       const displayText = document.getElementById("displayText").value.trim();
@@ -63,8 +66,8 @@
         formattedLink = "https://" + originalLink;
       }
 
-      // إنشاء رابط URL يتضمن معلمات dummy و real
-      // سيتم إعادة توجيه المستخدم إلى نفس الصفحة مع تمرير البيانات:
+      // تكوين رابط URL يشير لنفس الصفحة مع تمرير معلمات:
+      // dummy: النص الوهمي، real: الرابط الحقيقي
       const currentUrl = window.location.origin + window.location.pathname;
       const qrUrl = `${currentUrl}?dummy=${encodeURIComponent(displayText)}&real=${encodeURIComponent(formattedLink)}`;
 
@@ -72,35 +75,36 @@
       const qrContainer = document.getElementById("qrcode");
       qrContainer.innerHTML = "";
       
-      // إنشاء QR Code باستخدام الرابط الكامل
+      // إنشاء QR Code باستخدام الرابط الكامل الذي يحتوي على المعلمات
       new QRCode(qrContainer, {
         text: qrUrl,
         width: 200,
         height: 200
       });
 
-      // اختياري: عرض رسالة تفيد بأن QR Code تم إنشاؤه
+      // عرض رسالة بسيطة تؤكد إنشاء QR Code
       const output = document.getElementById("output");
-      output.textContent = "QR Code تم إنشاؤه. امسحه باستخدام هاتفك.";
+      output.textContent = "تم إنشاء QR Code. امسحه باستخدام هاتفك.";
       output.style.display = "block";
     }
 
-    // عند تحميل الصفحة، نقوم بفحص معلمات URL
+    // عند تحميل الصفحة، نفحص إذا كانت هناك معلمات dummy و real في URL
     window.onload = function() {
       const params = new URLSearchParams(window.location.search);
       const dummyText = params.get("dummy");
       const realLink = params.get("real");
 
-      // إذا وُجدت معلمات dummy و real، فهذا يعني أن الصفحة تم فتحها نتيجة مسح الـ QR Code
+      // إذا وُجدت المعلمات، نقوم بإخفاء واجهة المُولد وعرض النص الوهمي فقط
       if (dummyText && realLink) {
-        // إخفاء مولد QR Code (قسم الإدخال)
         document.getElementById("generator").style.display = "none";
-        
-        // عرض النص الوهمي في عنصر <a>، وعند النقر يتم توجيه المستخدم للرابط الحقيقي
+        document.getElementById("qrcode").style.display = "none";
+
         const output = document.getElementById("output");
-        output.textContent = dummyText;
+        output.textContent = dummyText; // عرض النص الوهمي فقط
         output.style.display = "block";
-        output.onclick = () => {
+
+        // عند النقر على النص الوهمي يتم التوجيه للرابط الحقيقي
+        output.onclick = function() {
           window.location.href = realLink;
         };
       }
